@@ -10,7 +10,7 @@ This is not affiliated with or endorsed by KingsIsle. The game files stay on you
 ## Prerequisites
 
 - Docker with Compose v2.
-- A Wizard101 client install and a WizType dump, to produce the generator inputs. [Imlight's generator-input guide](https://github.com/han-xyz/Imlight/blob/feat/l6-dockerfile-quickstart/deploy/generator-input/README.md) says how.
+- A Wizard101 client install and a WizType dump, to produce the generator inputs. [Imlight's generator-input guide](https://github.com/han-xyz/Imlight/blob/feat/imlight-friends-server/deploy/generator-input/README.md) says how.
 - About 20 GB of free disk for the mirrored game files.
 
 ## First run
@@ -22,7 +22,21 @@ This is not affiliated with or endorsed by KingsIsle. The game files stay on you
    cd revive101-server
    ```
 
-   To update the forks later, run `git submodule update --remote --merge`.
+   To update the forks later, run both commands: the first moves each fork to its branch tip, the second moves Imlight's Imcodec to the commit Imlight pins.
+
+   ```sh
+   git submodule update --remote --merge
+   git -C Imlight submodule update --init
+   ```
+
+   Before the first clone works: the fork branches must be on GitHub, or the clone fails. Push in this order.
+
+   ```sh
+   git -C Imlight/submodule/Imcodec push -u origin e1eee57:refs/heads/crown-shop-types
+   git -C Imlight push -u origin feat/imlight-friends-server
+   git -C Aurorium push -u origin feat/a5-dockerfile
+   git push -u origin feat/h2-submodules
+   ```
 
 2. Copy the generator inputs (the WizType JSON and the 29 `*Messages*.xml` files) into `Imlight/deploy/generator-input/` inside the submodule. The Imlight build fails without them.
 
@@ -68,7 +82,7 @@ This is not affiliated with or endorsed by KingsIsle. The game files stay on you
    WizardGraphicalClient.exe -L <GAME_SERVER_IP> 12000
    ```
 
-9. Create friend accounts. Log in with the admin account (`ADMIN_USERNAME`, `ADMIN_PASSWORD`), create a wizard, enter the world, and type in chat, per [Imlight's command list](https://github.com/han-xyz/Imlight/blob/feat/l6-dockerfile-quickstart/docs/docs/modules/imlight/commands.md):
+9. Create friend accounts. Log in with the admin account (`ADMIN_USERNAME`, `ADMIN_PASSWORD`), create a wizard, enter the world, and type in chat, per [Imlight's command list](https://github.com/han-xyz/Imlight/blob/feat/imlight-friends-server/docs/docs/modules/imlight/commands.md):
 
     ```text
     .account create <user> <password>
