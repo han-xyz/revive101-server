@@ -10,7 +10,7 @@ This is not affiliated with or endorsed by KingsIsle. The game files stay on you
 ## Prerequisites
 
 - Docker with Compose v2.
-- A Wizard101 client install and a WizType dump, to produce the generator inputs. [Imlight's generator-input guide](https://github.com/han-xyz/Imlight/blob/feat/imlight-friends-server/deploy/generator-input/README.md) says how.
+- A Wizard101 client install and a WizType dump, to produce the generator inputs. [Imlight's generator-input guide](https://github.com/han-xyz/Imlight/blob/quality-assurance/deploy/generator-input/README.md) says how.
 - About 20 GB of free disk for the mirrored game files.
 
 ## First run
@@ -73,7 +73,7 @@ This is not affiliated with or endorsed by KingsIsle. The game files stay on you
    WizardGraphicalClient.exe -L <GAME_SERVER_IP> 12000
    ```
 
-9. Create friend accounts. Log in with the admin account (`ADMIN_USERNAME`, `ADMIN_PASSWORD`), create a wizard, enter the world, and type in chat, per [Imlight's command list](https://github.com/han-xyz/Imlight/blob/feat/imlight-friends-server/docs/docs/modules/imlight/commands.md):
+9. Create friend accounts. Log in with the admin account (`ADMIN_USERNAME`, `ADMIN_PASSWORD`), create a wizard, enter the world, and type in chat, per [Imlight's command list](https://github.com/han-xyz/Imlight/blob/quality-assurance/docs/docs/modules/imlight/commands.md):
 
     ```text
     .account create <user> <password>
