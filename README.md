@@ -29,15 +29,6 @@ This is not affiliated with or endorsed by KingsIsle. The game files stay on you
    git -C Imlight submodule update --init
    ```
 
-   Before the first clone works: the fork branches must be on GitHub, or the clone fails. Push in this order.
-
-   ```sh
-   git -C Imlight/submodule/Imcodec push -u origin e1eee57:refs/heads/crown-shop-types
-   git -C Imlight push -u origin feat/imlight-friends-server
-   git -C Aurorium push -u origin feat/a5-dockerfile
-   git push -u origin feat/h2-submodules
-   ```
-
 2. Copy the generator inputs (the WizType JSON and the 29 `*Messages*.xml` files) into `Imlight/deploy/generator-input/` inside the submodule. The Imlight build fails without them.
 
    ```sh
