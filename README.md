@@ -15,65 +15,60 @@ This is not affiliated with or endorsed by KingsIsle. The game files stay on you
 
 ## First run
 
-1. Clone this repo.
+1. Clone this repo with its submodules, Aurorium and Imlight, at the branches named in `.gitmodules`. `--recurse-submodules` is required: Imlight has a submodule of its own (Imcodec) that its build needs.
 
    ```sh
-   git clone <this repo's URL> revive101-server
+   git clone --recurse-submodules https://github.com/han-xyz/revive101-server.git
    cd revive101-server
    ```
 
-2. Clone the two forks beside the compose file, at the named branches. `--recurse-submodules` is required: Imlight's build needs its Imcodec submodule.
+   To update the forks later, run `git submodule update --remote --merge`.
 
-   ```sh
-   git clone --recurse-submodules -b feat/a5-dockerfile https://github.com/han-xyz/Aurorium Aurorium
-   git clone --recurse-submodules -b feat/l6-dockerfile-quickstart https://github.com/han-xyz/Imlight Imlight
-   ```
-
-3. Copy the generator inputs (the WizType JSON and the 29 `*Messages*.xml` files) into Imlight's build context. The Imlight build fails without them.
+2. Copy the generator inputs (the WizType JSON and the 29 `*Messages*.xml` files) into `Imlight/deploy/generator-input/` inside the submodule. The Imlight build fails without them.
 
    ```sh
    cp /path/to/your/generator-input/* Imlight/deploy/generator-input/
    ```
 
-4. Create `.env` and fill in `ADMIN_PASSWORD` and `GAME_SERVER_IP`. Every variable is explained in `.env.example`. The password must not be empty or `compsci`, or Imlight exits at boot.
+3. Create `.env` and fill in `ADMIN_PASSWORD` and `GAME_SERVER_IP`. Every variable is explained in `.env.example`. The password must not be empty or `compsci`, or Imlight exits at boot.
 
    ```sh
    cp .env.example .env
    ```
 
-5. Build both images (a few minutes).
+4. Build both images (a few minutes).
 
    ```sh
    docker compose build
    ```
 
-6. Start Aurorium. On first start it mirrors about 19 GB from KingsIsle, which takes hours. Aurorium answers `/latest` with a revision only when the mirror is ready. Do not start Imlight before then; if you did, run `docker compose restart imlight` once `/latest` prints a revision.
+5. Start Aurorium. On first start it mirrors about 19 GB from KingsIsle, which takes hours. Aurorium answers `/latest` with a revision only when the mirror is ready. Do not start Imlight before then; if you did, run `docker compose restart imlight` once `/latest` prints a revision.
 
    ```sh
    docker compose up -d aurorium
    curl http://127.0.0.1:12369/latest
    ```
 
-7. `/latest` prints the revision with a `V_` prefix, and Imlight adds that prefix itself when it builds the patch URL. Print the value without it, and if it differs from `GAME_REVISION` in `.env`, set `GAME_REVISION` to it.
+6. `/latest` prints the revision with a `V_` prefix, and Imlight adds that prefix itself when it builds the patch URL. Print the value without it, and if it differs from `GAME_REVISION` in `.env`, set `GAME_REVISION` to it.
 
    ```sh
    curl -s http://127.0.0.1:12369/latest | sed 's/^V_//'
    ```
 
-8. Start Imlight and wait for two log lines: `TcpListener for ... bound to port 12000 — listening.` and `Patch server at URL http://<GAME_SERVER_IP>:12369/V_<revision> found and set`. Imlight checks the patch server once at boot. If it logs `Patch server endpoint is not available! Continuing without patch server.`, fix reachability (see Network) and run `docker compose restart imlight`.
+7. Start Imlight and wait for two log lines: `TcpListener for ... bound to port 12000 — listening.` and `Patch server at URL http://<GAME_SERVER_IP>:12369/V_<revision> found and set`. Imlight checks the patch server once at boot. If it logs `Patch server endpoint is not available! Continuing without patch server.`, fix reachability (see Network) and run `docker compose restart imlight`.
 
    ```sh
    docker compose up -d imlight
    docker compose logs -f imlight
    ```
 
-9. Each player starts the client with your server's address.
+8. Each player starts the client with your server's address.
 
    ```sh
    WizardGraphicalClient.exe -L <GAME_SERVER_IP> 12000
    ```
 
-10. Create friend accounts. Log in with the admin account (`ADMIN_USERNAME`, `ADMIN_PASSWORD`), create a wizard, enter the world, and type in chat, per [Imlight's command list](https://github.com/han-xyz/Imlight/blob/feat/l6-dockerfile-quickstart/docs/docs/modules/imlight/commands.md):
+9. Create friend accounts. Log in with the admin account (`ADMIN_USERNAME`, `ADMIN_PASSWORD`), create a wizard, enter the world, and type in chat, per [Imlight's command list](https://github.com/han-xyz/Imlight/blob/feat/l6-dockerfile-quickstart/docs/docs/modules/imlight/commands.md):
 
     ```text
     .account create <user> <password>

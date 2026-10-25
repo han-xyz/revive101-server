@@ -1,0 +1,8 @@
+[submodule "Aurorium"]
+	path = Aurorium
+	url = https://github.com/han-xyz/Aurorium.git
+	branch = feat/a5-dockerfile
+[submodule "Imlight"]
+	path = Imlight
+	url = https://github.com/han-xyz/Imlight.git
+	branch = feat/imlight-friends-server
