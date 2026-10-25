@@ -1,0 +1,45 @@
+services:
+  aurorium:
+    build: ./Aurorium
+    volumes:
+      - aurorium-data:/app/data
+    ports:
+      - "${AURORIUM_BIND:-0.0.0.0}:12369:12369"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/12369"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  imlight:
+    build:
+      context: ./Imlight
+      dockerfile: deploy/Dockerfile
+    depends_on:
+      - aurorium
+    ports:
+      - "12000:12000"
+      - "12333:12333"
+      - "12500:12500"
+    volumes:
+      - imlight-db:/data/db
+      - imlight-spiraldb:/data/spiraldb
+      - imlight-logs:/data/logs
+      - imlight-cache:/data/cache
+    environment:
+      IMLIGHT__Database__AdminAccountUsername: ${ADMIN_USERNAME:-admin}
+      IMLIGHT__Database__AdminAccountPassword: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
+      IMLIGHT__Database__SpiralDBRemoteUrl: ${SPIRALDB_URL:-https://github.com/han-xyz/spiraldb.git}
+      IMLIGHT__Game_Server__GameServerIP: ${GAME_SERVER_IP:?set GAME_SERVER_IP in .env}
+      # Players download game files straight from this URL, so it must be reachable from their machines.
+      IMLIGHT__Patch_Server__PatchServerInternalUrl: http://${GAME_SERVER_IP}:12369
+      IMLIGHT__Global_Settings__GameRevision: ${GAME_REVISION:-r806919.Wizard_1_610}
+    restart: unless-stopped
+
+volumes:
+  aurorium-data:
+  imlight-db:
+  imlight-spiraldb:
+  imlight-logs:
+  imlight-cache:
