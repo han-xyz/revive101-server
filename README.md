@@ -22,11 +22,11 @@ This is not affiliated with or endorsed by KingsIsle. The game files stay on you
    cd revive101-server
    ```
 
-2. Clone the two forks beside the compose file, at the named branches.
+2. Clone the two forks beside the compose file, at the named branches. `--recurse-submodules` is required: Imlight's build needs its Imcodec submodule.
 
    ```sh
-   git clone -b feat/a5-dockerfile https://github.com/han-xyz/Aurorium Aurorium
-   git clone -b feat/l6-dockerfile-quickstart https://github.com/han-xyz/Imlight Imlight
+   git clone --recurse-submodules -b feat/a5-dockerfile https://github.com/han-xyz/Aurorium Aurorium
+   git clone --recurse-submodules -b feat/l6-dockerfile-quickstart https://github.com/han-xyz/Imlight Imlight
    ```
 
 3. Copy the generator inputs (the WizType JSON and the 29 `*Messages*.xml` files) into Imlight's build context. The Imlight build fails without them.
@@ -35,7 +35,7 @@ This is not affiliated with or endorsed by KingsIsle. The game files stay on you
    cp /path/to/your/generator-input/* Imlight/deploy/generator-input/
    ```
 
-4. Create `.env` and fill in `ADMIN_PASSWORD` and `GAME_SERVER_IP`. Every variable is explained in `.env.example`.
+4. Create `.env` and fill in `ADMIN_PASSWORD` and `GAME_SERVER_IP`. Every variable is explained in `.env.example`. The password must not be empty or `compsci`, or Imlight exits at boot.
 
    ```sh
    cp .env.example .env
@@ -47,16 +47,20 @@ This is not affiliated with or endorsed by KingsIsle. The game files stay on you
    docker compose build
    ```
 
-6. Start Aurorium. On first start it mirrors about 19 GB from KingsIsle, which takes hours. Aurorium answers `/latest` with a revision only when the mirror is ready.
+6. Start Aurorium. On first start it mirrors about 19 GB from KingsIsle, which takes hours. Aurorium answers `/latest` with a revision only when the mirror is ready. Do not start Imlight before then; if you did, run `docker compose restart imlight` once `/latest` prints a revision.
 
    ```sh
    docker compose up -d aurorium
    curl http://127.0.0.1:12369/latest
    ```
 
-7. If the revision printed differs from `GAME_REVISION` in `.env`, set `GAME_REVISION` to it.
+7. `/latest` prints the revision with a `V_` prefix, and Imlight adds that prefix itself when it builds the patch URL. Print the value without it, and if it differs from `GAME_REVISION` in `.env`, set `GAME_REVISION` to it.
 
-8. Start Imlight and wait for the log line `TcpListener for ... bound to port 12000 — listening.`
+   ```sh
+   curl -s http://127.0.0.1:12369/latest | sed 's/^V_//'
+   ```
+
+8. Start Imlight and wait for two log lines: `TcpListener for ... bound to port 12000 — listening.` and `Patch server at URL http://<GAME_SERVER_IP>:12369/V_<revision> found and set`. Imlight checks the patch server once at boot. If it logs `Patch server endpoint is not available! Continuing without patch server.`, fix reachability (see Network) and run `docker compose restart imlight`.
 
    ```sh
    docker compose up -d imlight
@@ -69,7 +73,7 @@ This is not affiliated with or endorsed by KingsIsle. The game files stay on you
    WizardGraphicalClient.exe -L <GAME_SERVER_IP> 12000
    ```
 
-10. Create friend accounts. Log in with the admin account (`ADMIN_USERNAME`, `ADMIN_PASSWORD`) and type in game chat, per [Imlight's command list](https://github.com/han-xyz/Imlight/blob/feat/l6-dockerfile-quickstart/docs/docs/modules/imlight/commands.md):
+10. Create friend accounts. Log in with the admin account (`ADMIN_USERNAME`, `ADMIN_PASSWORD`), create a wizard, enter the world, and type in chat, per [Imlight's command list](https://github.com/han-xyz/Imlight/blob/feat/l6-dockerfile-quickstart/docs/docs/modules/imlight/commands.md):
 
     ```text
     .account create <user> <password>
@@ -77,9 +81,11 @@ This is not affiliated with or endorsed by KingsIsle. The game files stay on you
 
 ## Network
 
-On a LAN the setup works as is: set `GAME_SERVER_IP` to the host's LAN address. Clients download game files directly from `http://<GAME_SERVER_IP>:12369`, so Aurorium's port must be reachable at that address.
+On a LAN the setup works as is: set `GAME_SERVER_IP` to the host's LAN address. Clients download game files directly from `http://<GAME_SERVER_IP>:12369`, so Aurorium's port must be reachable at that address, from the Imlight container too. `AURORIUM_BIND` may be narrowed to the `GAME_SERVER_IP` address (for example the VPN IP); any other value breaks patching.
 
-For friends over the internet, put everyone on a VPN (Tailscale or WireGuard) and set `GAME_SERVER_IP` to the host's VPN address. Do not port-forward the server to the internet: once a player is attached the server trusts them with its session, and Imlight's security audit has more fixes pending.
+If Imlight logs that the patch server is not available, a host firewall that denies incoming traffic by default (ufw, firewalld) is the usual cause: allow the compose bridge to reach port 12369 on the host, for example `ufw allow in on br-+ to any port 12369 proto tcp`.
+
+For friends over the internet, put everyone on a VPN (Tailscale or WireGuard) and set `GAME_SERVER_IP` to the host's VPN address. Do not port-forward the server to the internet: once a player is attached the server trusts them with its session, and more security fixes are pending.
 
 ## Data pack
 

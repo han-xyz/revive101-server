@@ -11,13 +11,16 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 30s
+      start_interval: 2s
 
   imlight:
     build:
       context: ./Imlight
       dockerfile: deploy/Dockerfile
     depends_on:
-      - aurorium
+      aurorium:
+        condition: service_healthy
     ports:
       - "12000:12000"
       - "12333:12333"
