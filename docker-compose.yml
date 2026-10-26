@@ -1,6 +1,27 @@
 services:
+  # Serves the game files from a client you already have (CLIENT_DIR). Chosen with COMPOSE_PROFILES=client-folder.
+  client-files:
+    image: nginx:1.28.0-alpine
+    profiles: [client-folder]
+    volumes:
+      - ${CLIENT_DIR:-./client}:/client:ro
+      - ./client-files/lists:/lists:ro
+      - ./client-files/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "${AURORIUM_BIND:-0.0.0.0}:12369:12369"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:12369/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+      start_interval: 2s
+
+  # Mirrors the game files from KingsIsle (about 19 GB). Chosen with COMPOSE_PROFILES=mirror.
   aurorium:
     build: ./Aurorium
+    profiles: [mirror]
     volumes:
       - aurorium-data:/app/data
     ports:
@@ -19,8 +40,12 @@ services:
       context: ./Imlight
       dockerfile: deploy/Dockerfile
     depends_on:
+      client-files:
+        condition: service_healthy
+        required: false
       aurorium:
         condition: service_healthy
+        required: false
     ports:
       - "12000:12000"
       - "12333:12333"
@@ -34,10 +59,13 @@ services:
       IMLIGHT__Database__AdminAccountUsername: ${ADMIN_USERNAME:-admin}
       IMLIGHT__Database__AdminAccountPassword: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
       IMLIGHT__Database__SpiralDBRemoteUrl: ${SPIRALDB_URL:-https://github.com/han-xyz/spiraldb.git}
+      # Imlight clones the data pack only into a path that doesn't exist yet, and the volume root always does.
+      IMLIGHT__Database__SpiralDBLocalPath: /data/spiraldb/repo
       IMLIGHT__Game_Server__GameServerIP: ${GAME_SERVER_IP:?set GAME_SERVER_IP in .env}
       # Players download game files straight from this URL, so it must be reachable from their machines.
       IMLIGHT__Patch_Server__PatchServerInternalUrl: http://${GAME_SERVER_IP}:12369
       IMLIGHT__Global_Settings__GameRevision: ${GAME_REVISION:-r806919.Wizard_1_610}
+      IMLIGHT__Admin_Panel__Enabled: ${ADMIN_PANEL_ENABLED:-false}
     restart: unless-stopped
 
 volumes:
