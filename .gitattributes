@@ -1,3 +1,5 @@
 # Windows scripts check out with CRLF so cmd.exe and PowerShell 5.1 parse them reliably.
 *.cmd text eol=crlf
 *.ps1 text eol=crlf
+# Shell scripts run in Linux containers, so they keep LF.
+*.sh text eol=lf
