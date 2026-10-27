@@ -121,7 +121,7 @@ Passwords cannot contain spaces. A password given on the command line stays in y
 
 ## Admin panel
 
-Staff accounts (auth level QualityAssurance or above) can manage accounts and Crowns from an in-game panel: open the settings window and click **Admin**, above Quit. It needs two things:
+Staff accounts (auth level QualityAssurance or above) can do everything the chat commands do from an in-game panel: open the settings window and click **Admin**, above Quit. Type a username above the tabs to load an account; its characters show as heads down the left side, and the character tabs act on the one you click, whether its player is online or not. Each tab lists only the actions your auth level allows. It needs two things:
 
 1. `ADMIN_PANEL_ENABLED=true` in `.env`, then `docker compose up -d imlight`.
 2. The panel's client files on each staff PC. Close the game client, then run:
@@ -130,7 +130,7 @@ Staff accounts (auth level QualityAssurance or above) can manage accounts and Cr
    python -I Imlight/tools/admin-panel/build.py --client "<game client folder>" --install
    ```
 
-   This adds the panel to the client's `Data/GameData/Root.wad` and keeps the original as `Data/Root.wad.adminpanel-original`; `--uninstall` restores it. A client update replaces `Root.wad`, so install again after patching. Players who aren't staff need nothing.
+   This adds the panel to the client's `Data/GameData/Root.wad` and keeps the original as `Data/Root.wad.adminpanel-original`; `--uninstall` restores it. A client update replaces `Root.wad`, so install again after patching, and after updating Imlight. Players who aren't staff need nothing.
 
 [Imlight's admin panel notes](https://github.com/han-xyz/Imlight/blob/feat/admin-panel/tools/admin-panel/README.md) say what each action needs.
 
