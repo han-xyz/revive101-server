@@ -1,0 +1,32 @@
+# Aurorium on Fly.io: the game-file server, port 12369 on the app's dedicated IPv4.
+# App names are global on Fly; change it if taken.
+app = "revive101-aurorium"
+primary_region = "iad"
+kill_signal = "SIGTERM"
+kill_timeout = 30
+
+[build]
+  dockerfile = "Dockerfile"
+
+[[mounts]]
+  source = "aurorium_data"
+  destination = "/app/data"
+  initial_size = "30gb"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+
+# Stops when idle, which also pauses mirroring: keep it running for the first mirror (README, Fly.io).
+[[services]]
+  protocol = "tcp"
+  internal_port = 12369
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  [[services.ports]]
+    port = 12369
+  [services.concurrency]
+    type = "connections"
+    soft_limit = 500
+    hard_limit = 1000

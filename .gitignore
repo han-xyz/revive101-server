@@ -1,2 +1,5 @@
 .env
 client-files/lists/
+/!IGNORE/
+/.scratch/
+/.vscode/

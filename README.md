@@ -84,11 +84,40 @@ This is not affiliated with or endorsed by KingsIsle. The game files stay on you
    WizardGraphicalClient.exe -L <GAME_SERVER_IP> 12000
    ```
 
-8. Create friend accounts. Log in with the admin account (`ADMIN_USERNAME`, `ADMIN_PASSWORD`), create a wizard, enter the world, and type in chat, per [Imlight's command list](https://github.com/han-xyz/Imlight/blob/quality-assurance/docs/docs/modules/imlight/commands.md):
+   On Windows, `Start-Client-Local.cmd` does this from the client in `CLIENT_DIR`, or in a standard install location, after checking the server answers.
+
+8. Create friend accounts from the [server console](#server-console):
+
+    ```sh
+    docker compose exec imlight dotnet Imlight.Director.dll console account create <user> <password>
+    ```
+
+    Or log in with the admin account (`ADMIN_USERNAME`, `ADMIN_PASSWORD`), create a wizard, enter the world, and type in chat, per [Imlight's command list](https://github.com/han-xyz/Imlight/blob/quality-assurance/docs/docs/modules/imlight/commands.md):
 
     ```text
     .account create <user> <password>
     ```
+
+## Server console
+
+Imlight takes staff account commands in a terminal, with no game client or character. They act as the admin account (`ADMIN_USERNAME`), and every change goes to the admin audit log, as the panel's do. Run one command, or leave the command out for an interactive console:
+
+```sh
+docker compose exec imlight dotnet Imlight.Director.dll console account list
+docker compose exec imlight dotnet Imlight.Director.dll console
+```
+
+| Command | Does |
+| --- | --- |
+| `account list` | Lists every account. |
+| `account info <user>` | Shows an account. |
+| `account create <user> <password> [level]` | Creates an account, optionally with an auth level. |
+| `account password <user> <password>` | Changes a password. `ADMIN_PASSWORD` applies only when the admin account is first created, so change it here later. |
+| `account level <user> <level>` | Changes an auth level: `None`, `QualityAssurance`, `HallMonitor`, `Developer` or `Administrator`. |
+| `account lock <user>` / `account unlock <user>` | Stops an account from logging in, or lets it again. |
+| `crowns <user> [change]` | Shows an account's Crowns, or adds (`500`) or takes away (`-500`). |
+
+Passwords cannot contain spaces. A password given on the command line stays in your shell history; type it in the interactive console to avoid that.
 
 ## Admin panel
 
@@ -112,6 +141,53 @@ On a LAN the setup works as is: set `GAME_SERVER_IP` to the host's LAN address. 
 If Imlight logs that the patch server is not available, a host firewall that denies incoming traffic by default (ufw, firewalld) is the usual cause: allow the compose bridge to reach port 12369 on the host, for example `ufw allow in on br-+ to any port 12369 proto tcp`.
 
 For friends over the internet, put everyone on a VPN (Tailscale or WireGuard) and set `GAME_SERVER_IP` to the host's VPN address. On a Windows host with Tailscale, right-click `Enable-TailscaleFirewall.cmd` and choose **Run as administrator**: it allows TCP 12000, 12333, 12369 and 12500 in from Tailscale addresses on the Tailscale interface only. Do not port-forward the server to the internet: once a player is attached the server trusts them with its session, and more security fixes are pending.
+
+## Fly.io
+
+[`fly/imlight/`](fly/imlight/) runs Imlight on Fly.io on a public IPv4. The machine stops when nobody is connected and starts on the next connection, so you pay for compute only while it runs; the volume and IP are billed all month. The app is public, so access control is up to you.
+
+Game files come from a public Aurorium mirror, `https://patcher.phill030.de`, set in `fly/imlight/fly.toml`. Imlight downloads the ones it reads into its cache on the volume, and players who patch download from the mirror. To self-host them, deploy [`fly/aurorium/`](fly/aurorium/) the same way and point `IMLIGHT__Patch_Server__PatchServerInternalUrl` at its IPv4. Its first start mirrors about 19 GB, and a stopped machine doesn't mirror, so keep it running until `/latest` answers: `fly machine update <machine-id> --autostop=off`, then `--autostop=stop`.
+
+1. Install [flyctl](https://fly.io/docs/flyctl/install/), run `fly auth login`, and change `app` in `fly/imlight/fly.toml` if the name is taken. Set `primary_region` near your players.
+2. Build the image locally. The Fly image wraps it, and `--local-only` keeps the generator inputs off Fly's builders.
+
+   ```sh
+   docker compose build imlight
+   ```
+
+3. Create the app and give it a dedicated IPv4 ($2/month; raw TCP needs one).
+
+   ```sh
+   fly apps create revive101-imlight --org magus
+   fly ips allocate-v4 -a revive101-imlight
+   fly ips list -a revive101-imlight
+   ```
+
+4. Set the secrets and deploy.
+
+   ```sh
+   fly secrets set -a revive101-imlight --stage \
+     IMLIGHT__Database__AdminAccountPassword='<password>' \
+     IMLIGHT__Game_Server__GameServerIP=<imlight-ip>
+   fly deploy fly/imlight --local-only --ha=false
+   fly logs -a revive101-imlight
+   ```
+
+5. Players start the client with `-L <imlight-ip> 12000`. The first connection after the server has stopped waits while it boots. On Windows, `Start-Client-Production.cmd` wakes the server, waits until Imlight answers, then starts the client.
+
+To open the [server console](#server-console) on Fly from Windows, double-click `Imlight-Console.cmd`. It starts the machine if it has stopped, waits for Imlight, and keeps the machine running while the console is open. Pass a command to run just that one:
+
+```sh
+Imlight-Console.cmd account create <user> <password>
+```
+
+Elsewhere, run the console over SSH as the app's user, with the machine started:
+
+```sh
+fly ssh console -a revive101-imlight -C "sh -c 'cd /app && exec setpriv --reuid=1654 --regid=1654 --clear-groups dotnet Imlight.Director.dll console'"
+```
+
+To change other settings, edit `[env]` in `fly/imlight/fly.toml` and deploy again. After `docker compose build`, deploy again to ship the new image.
 
 ## Data pack
 

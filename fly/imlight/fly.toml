@@ -1,0 +1,70 @@
+# Imlight on Fly.io: login 12000, realm 12333, patch 12500 on the app's dedicated IPv4.
+# App names are global on Fly; change it if taken.
+app = "revive101-imlight"
+primary_region = "iad"
+kill_signal = "SIGTERM"
+kill_timeout = 30
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  IMLIGHT__Database__AdminAccountUsername = "admin"
+  IMLIGHT__Database__SpiralDBRemoteUrl = "https://github.com/han-xyz/spiraldb.git"
+  # Imlight clones the data pack only into a path that doesn't exist yet, and the volume root always does.
+  IMLIGHT__Database__SpiralDBLocalPath = "/data/spiraldb/repo"
+  IMLIGHT__Global_Settings__GameRevision = "r806919.Wizard_1_610"
+  IMLIGHT__Admin_Panel__Enabled = "false"
+  # Game files come from a public Aurorium mirror; Imlight caches what it reads on the volume, and players patch from here.
+  # To self-host, deploy fly/aurorium and set this to http://<aurorium-ip>:12369.
+  IMLIGHT__Patch_Server__PatchServerInternalUrl = "https://patcher.phill030.de"
+  # Set as secrets (README, Fly.io): IMLIGHT__Database__AdminAccountPassword, IMLIGHT__Game_Server__GameServerIP.
+
+[[mounts]]
+  source = "imlight_data"
+  destination = "/data"
+  initial_size = "5gb"
+
+[[vm]]
+  size = "shared-cpu-2x"
+  memory = "2gb"
+
+# The machine stops when no player is connected and starts on the next connection.
+[[services]]
+  protocol = "tcp"
+  internal_port = 12000
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  [[services.ports]]
+    port = 12000
+  [services.concurrency]
+    type = "connections"
+    soft_limit = 500
+    hard_limit = 1000
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 12333
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  [[services.ports]]
+    port = 12333
+  [services.concurrency]
+    type = "connections"
+    soft_limit = 500
+    hard_limit = 1000
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 12500
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  [[services.ports]]
+    port = 12500
+  [services.concurrency]
+    type = "connections"
+    soft_limit = 500
+    hard_limit = 1000
