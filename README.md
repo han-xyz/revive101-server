@@ -134,6 +134,18 @@ Staff accounts (auth level QualityAssurance or above) can do everything the chat
 
 [Imlight's admin panel notes](https://github.com/han-xyz/Imlight/blob/feat/admin-panel/tools/admin-panel/README.md) say what each action needs.
 
+## Chat filter
+
+The game client filters chat itself; the server only tells it which kind of chat each player has. `CHAT_FILTER_ENABLED=true` in `.env` gives players below HallMonitor filtered chat, where only words from the game's dictionary get through. Staff keep open chat. Players get the change at their next login.
+
+Open chat still masks the client's banned words. To turn them off, each player runs this on their own PC with the game client closed (`--on` undoes it):
+
+```sh
+python -I Imlight/tools/chat-filter/banned_words.py --client "<game client folder>" --off
+```
+
+Installing the admin panel or patching the client turns them back on, so run it again afterwards. [`Imlight/tools/chat-filter/README.md`](Imlight/tools/chat-filter/README.md) lists the client's filter files.
+
 ## Network
 
 On a LAN the setup works as is: set `GAME_SERVER_IP` to the host's LAN address. Imlight, and any client that patches, downloads game files from `http://<GAME_SERVER_IP>:12369`, so that port must be reachable at that address, from the Imlight container too. `AURORIUM_BIND` may be narrowed to the `GAME_SERVER_IP` address (for example the VPN IP); any other value breaks patching.
