@@ -16,6 +16,7 @@ kill_timeout = 30
   IMLIGHT__Global_Settings__GameRevision = "r806919.Wizard_1_610"
   IMLIGHT__Admin_Panel__Enabled = "true"
   IMLIGHT__Chat__FilterEnabled = "false"
+  IMLIGHT__Combat__GroupJoinPrompt = "false"
   # Game files come from a public Aurorium mirror; Imlight caches what it reads on the volume, and players patch from here.
   # To self-host, deploy fly/aurorium and set this to http://<aurorium-ip>:12369.
   IMLIGHT__Patch_Server__PatchServerInternalUrl = "https://patcher.phill030.de"
