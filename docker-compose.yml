@@ -65,6 +65,7 @@ services:
       # Players download game files straight from this URL, so it must be reachable from their machines.
       IMLIGHT__Patch_Server__PatchServerInternalUrl: http://${GAME_SERVER_IP}:12369
       IMLIGHT__Global_Settings__GameRevision: ${GAME_REVISION:-r806919.Wizard_1_610}
+      IMLIGHT__Logging__LogLevel: ${LOG_LEVEL:-INFO}
       IMLIGHT__Admin_Panel__Enabled: ${ADMIN_PANEL_ENABLED:-false}
       IMLIGHT__Chat__FilterEnabled: ${CHAT_FILTER_ENABLED:-false}
       IMLIGHT__Combat__GroupJoinPrompt: ${GROUP_JOIN_PROMPT:-false}
