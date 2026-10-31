@@ -14,7 +14,7 @@ kill_timeout = 30
   # Imlight clones the data pack only into a path that doesn't exist yet, and the volume root always does.
   IMLIGHT__Database__SpiralDBLocalPath = "/data/spiraldb/repo"
   IMLIGHT__Global_Settings__GameRevision = "r806919.Wizard_1_610"
-  IMLIGHT__Admin_Panel__Enabled = "false"
+  IMLIGHT__Admin_Panel__Enabled = "true"
   IMLIGHT__Chat__FilterEnabled = "false"
   # Game files come from a public Aurorium mirror; Imlight caches what it reads on the volume, and players patch from here.
   # To self-host, deploy fly/aurorium and set this to http://<aurorium-ip>:12369.
@@ -28,7 +28,7 @@ kill_timeout = 30
 
 [[vm]]
   size = "shared-cpu-2x"
-  memory = "2gb"
+  memory = "4gb"
 
 # The machine stops when no player is connected and starts on the next connection.
 [[services]]
